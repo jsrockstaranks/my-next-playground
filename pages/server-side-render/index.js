@@ -13,10 +13,11 @@ export default function SSR ({dogsBreeds}) {
 }
 export async function getServerSideProps() {
     // Fetch data from external API
+    console.log('APIHIT - SSR: API called for SSR');
     const res = await fetch(`https://dog.ceo/api/breeds/list/all`);
     const data = await res.json();
     const dogsBreeds = Object.entries(data.message);
-    console.log('checking on server ');
+    // console.log('checking on server ');
     // Pass data to the page via props
     return { props: { dogsBreeds } }
   }

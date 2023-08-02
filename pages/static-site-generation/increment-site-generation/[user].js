@@ -1,17 +1,21 @@
-const usersUrl = `https://api.github.com/users`; // 1M.
-// Cost effective - use the datqa from getStaticProps of index.js call.
+const usersUrl = `http://localhost:4000/api/users`;
+/* 
+    The above API returns 36 users, assume 1:10 so 36 will be 360 users
+*/
+// Cost effective - use the data from getStaticProps of index.js call.
 
 /*
-    10 paths
+    1K paths
 */
 
 export const getStaticPaths = async () => {
     // First function to run for the page;
     // To create all pages at build time
-    // 1 call.
+    // 1 call to get all 1K results, hypothetically API returning 1K users
     const res = await fetch(usersUrl);
     let usersData = await res.json();
     usersData = Object.values(usersData);
+    usersData = usersData.slice(0, 10); // scale 1:10.
     const paths = usersData.map(u => ({params: {user: u.login}}));
     /* e/g/ path will contain 
         paths = [
@@ -19,10 +23,10 @@ export const getStaticPaths = async () => {
             {params: {user:'Sushil'}}
         ];
     */
-    // paths list of 36 paths
+    // Generating first 100 paths statically
     return {
       paths,
-      fallback: true, // false or "blocking"
+      fallback: 'blocking', // false or "blocking"
     }
 }
 
@@ -30,14 +34,12 @@ export const getStaticPaths = async () => {
 export const getStaticProps = async (context) => {
     // Second function to run for the page;
     // Calls 10 time.
-    let repos = [];
     const user = context.params.user;
     const reposUrl = `http://localhost:4000/api/users/${user}`;
-    console.log('APIHIT - SSG: API called for user , ' , user , reposUrl);
+    console.log('APIHIT - ISG: API called for user , ' , user , reposUrl);
     const res = await fetch(reposUrl);
-    repos = await res.json();
+    let repos = await res.json();
     repos = Object.values(repos);
-    // console.log(repos, 'returned ');
     return { props: { repos } }
 }
 
@@ -46,8 +48,16 @@ export default function Users ({repos}) {
     // Creating HTML of each specific User
     // Calls 10 times.
     return <>
+    <div>
         {/* {error handling is missing} */}
-        This is SSG user dynamic page! <br/>
-        {repos ? repos.map((repo) => <p key={repo.id}> {repo.name} </p>) : <p key="noRepo">No repos available for this user</p>}
-    </>
+        This is ISR user dynamic page! <br/>
+        {repos ? repos.map((repo) => <p key={`${repo.id}ISR`}> {repo.name} </p>) : <p key="noSSR">No repos available for this user</p>}
+    </div></>
 }
+
+/*
+    - revalidate
+    - where next stores pages dynamically generated at user's request in ISR
+    - Is there any way to revalidate paths too?
+
+*/

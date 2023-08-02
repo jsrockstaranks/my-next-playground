@@ -9,7 +9,7 @@ export default function Home() {
   useEffect(() => async() => {
     const response  = await fetch('/api/hello');
     const d = await response.json();
-    console.log(d);
+    // console.log(d);
     setData(d);
   }, [])
   return (
